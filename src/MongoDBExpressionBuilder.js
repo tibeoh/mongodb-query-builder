@@ -3,12 +3,17 @@
 // @TODO "($BEGINS WITH)", "attribute_exists", "attribute_not_exists", "attribute_type"
 const ExpressionsMap = ["($IS)", "($ISNOT)", "($IN)", "($GT)", "($GTE)", "($LT)", "($LTE)", "($BETWEEN)", "($AND)", "($OR)", "($NOR)", "($OUTSIDE)", "($CONTAINS)", "($EXIST)", "($BEGINSWITH)"];
 const OperatorRegex = /\(.*\)/g;
-
+/**
+ * Class use to build params as mongo should to use it
+ */
 class MongoDBExpressionBuilder {
   constructor(obj) {
     this.obj = obj;
   }
 
+  /**
+   * Public metho which build params and return it
+   */
   build() {
     try {
       return this.formatRect(this.obj);
@@ -17,6 +22,11 @@ class MongoDBExpressionBuilder {
     }
   }
 
+  /**
+   * Recursive function which will parse all content of this object to build params
+   * @param {Object} obj Object will be parse to build params
+   * @param {String} _prefix prefixe come from previous loop
+   */
   formatRect(obj, _prefix) {
     let prefix = _prefix ? _prefix : "";
     let objectToReturned = {};
@@ -24,8 +34,10 @@ class MongoDBExpressionBuilder {
       const item = obj[key];
       const keyTrimmed = key.replace(/\s/g, "");
       const finalKey = keyTrimmed.replace(OperatorRegex, "");
+      // Case when current is an object (multiple deep) or an anrray
       if (typeof item === "object" || typeof item === "array") {
         const operatorValuesInformation = this.hasOperator(keyTrimmed);
+        // Case if operator is OR, AND, NOR
         if (operatorValuesInformation.array && !operatorValuesInformation.object) {
           objectToReturned[operatorValuesInformation.operator] = item.map(it => {
             if (typeof it !== "object") {
@@ -33,12 +45,15 @@ class MongoDBExpressionBuilder {
             }
             return this.formatRect(it, prefix);
           });
+          // Case when item is an object (Logical operator)
         } else if (operatorValuesInformation.object && !operatorValuesInformation.array) {
           objectToReturned[prefix !== "" ? `${prefix}.${finalKey}` : finalKey] = this.parseOperatorToObject(keyTrimmed, item);
+          // Case when item is on object with children
         } else if (typeof item === "object") {
           objectToReturned = Object.assign({}, objectToReturned, this.formatRect(item, prefix !== "" ? `${prefix}.${finalKey}` : finalKey));
         }
       } else {
+        // Case when item is not an object, but he can have some operator in his key
         const operatorValuesInformation = this.hasOperator(keyTrimmed);
         if (operatorValuesInformation.object) {
           objectToReturned[prefix !== "" ? `${prefix}.${finalKey}` : finalKey] = this.parseOperatorToObject(keyTrimmed, item);
@@ -50,13 +65,26 @@ class MongoDBExpressionBuilder {
     return objectToReturned;
   }
 
+  /**
+   * Test if key have operator and filter from allow operator
+   * @param {String} key Key will be test
+   */
   keyHasOperator(key) {
     return ExpressionsMap.filter(ope => key.includes(ope)).length > 0;
   }
 
+  /**
+   * Test if key have negative therme
+   * @param {String} key key will be test
+   */
   keyHasNotOperator(key) {
     return key.includes("($NOT)");
   }
+
+  /**
+   * Test if key have operator and return object will have information of what kind of operator is it
+   * @param {String} key key will be test
+   */
 
   hasOperator(key) {
     let objectToReturned = {
@@ -113,6 +141,11 @@ class MongoDBExpressionBuilder {
     }
   }
 
+  /**
+   * Send object with mongo operator transformation
+   * @param {String} key key will be parse to get operator
+   * @param {String|Number|Array} item content of object
+   */
   parseOperatorToObject(key, item) {
     let operator = "";
     if (this.keyHasNotOperator(key)) {
