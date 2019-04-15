@@ -2,7 +2,7 @@
 
 ## Features
 
-- Build params object for DynamoDB queries
+- Build params object for MongoDB queries
 - Create filters object readable and it will be transform for the MongoDB parameter syntax
 
 ## Installation
@@ -29,7 +29,7 @@ let params = mongoDBBuilder
   .build();
 ```
 
-Now you have to use `params` variable for your DynamoDB query.
+Now you have to use `params` variable for your MongoDB query.
 
 ```
 mongoose.model.find(params).then(values => {
