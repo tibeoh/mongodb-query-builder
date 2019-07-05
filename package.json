@@ -1,6 +1,6 @@
 {
   "name": "mongo-query-builder",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "MongoDB builder",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,6 @@
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^6.1.3"
+    "mocha": "^6.1.4"
   }
 }
