@@ -8,7 +8,7 @@
 ## Installation
 
 ```
-npm install mongodb-query-builder
+npm i @tibeoh/mongodb-query-builder
 ```
 
 ## How to use?
