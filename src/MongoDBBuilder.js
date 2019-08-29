@@ -9,6 +9,7 @@ class MongoDBBuilder {
 
   setFilters(filters) {
     this.queryBuilder = new MongoDBExpressionBuilder(filters);
+    return this;
   }
 
   build() {
